@@ -1,0 +1,5 @@
+name = Randomizer of Contents
+description = Selects a number of recent articles of specific article types to be displayed in a block.
+package = Alex
+version = VERSION
+core = 7.x
