@@ -1,0 +1,19 @@
+<?php
+
+function randomizer_of_content_block_info() {
+  $blocks['randomizer'] = array(
+    'info' => t('Randomizer'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+}
+
+function randomizer_of_content_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'randomizer':
+      $block['subject'] = t('Randomizer');
+      $block['content'] = array('Jora jorel');
+      break;
+  }
+}
