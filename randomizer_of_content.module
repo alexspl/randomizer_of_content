@@ -1,19 +1,36 @@
 <?php
 
 function randomizer_of_content_block_info() {
-  $blocks['randomizer'] = array(
-    'info' => t('Randomizer'),
-    'cache' => DRUPAL_NO_CACHE,
-  );
+    $blocks = array();
+    $blocks['randomizer'] = array(
+        'info' => t('Randomizer'),
+        'cache' => DRUPAL_NO_CACHE,
+    );
+    return $blocks;
 }
 
-function randomizer_of_content_block_view($delta = '') {
+/**
+ * Implementation of hook_block_view().
+ */
+function randomizer_of_content_block_view($delta='') {
   $block = array();
-
   switch ($delta) {
     case 'randomizer':
-      $block['subject'] = t('Randomizer');
-      $block['content'] = array('Jora jorel');
+      $block['subject'] = t('Block Name');
+      $block['content'] = randomizer_of_content_contents();
       break;
   }
+  return $block;
+}
+ 
+/**
+ * custom html block
+ * @return string
+ */
+function randomizer_of_content_contents() {
+  return '
+    </p><div class="body">
+      Jora jorel
+    </div><p>
+  ';
 }
