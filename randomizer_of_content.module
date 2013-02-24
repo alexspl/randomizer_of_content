@@ -1,5 +1,33 @@
 <?php
 
+function randomizer_of_content_menu() {
+    $items = array();
+
+    $items['admin/settings/randomizer_of_content'] = array(
+        'title' => 'Randomizer',
+        'page callback' => 'drupal_get_form',
+        'page arguments' => array('randomizer_of_content_admin'),
+        'access callback' => TRUE,
+        
+    );
+    return $items;
+}
+
+function randomizer_of_content_admin() {
+  $form = array();
+
+  $form['forms_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Number of forms'),
+    '#default_value' => variable_get('forms_count'),
+    '#size' => 2,
+    '#maxlength' => 2,
+    '#required' => TRUE,
+  );
+
+  return system_settings_form($form);
+}
+
 function randomizer_of_content_block_info() {
     $blocks = array();
     $blocks['randomizer'] = array(
@@ -15,19 +43,32 @@ function randomizer_of_content_block_configure($delta='') {
     
     switch($delta) {
         case 'randomizer' :
+            $n = variable_get('forms_count');
+            for ($i = 1; $i <= $n; $i++) {
             //Content type select box:
-            $form['node'] = array(
-                '#type' => 'select',
-                '#title' => t('Select content type'),
-                '#options' => array(),
-                '#default_value' => variable_get('selection_variable', ''),
-            );
-            foreach ($nodes as $node) {
-                $form['node']['#options'][$node->type] = $node->name;
-            }
+                foreach ($nodes as $node) {
+                    $options[$node->type] = $node->name;
+                 }
+            
+                $form['node_type_' . $i] = array(
+                    '#type' => 'select',
+                    '#title' => t('Select content type'),
+                    '#options' => $options,
+                    '#default_value' => variable_get('selection_variable_' . $i, ''), //to fix
+                    '#required' => TRUE,
+                );
+            
             
             //Number of entries text field:
+                $form['entries_count_' . $i] = array(
+                    '#title' => t('Number of content types'),
+                    '#type' => 'textfield',
+                    '#required' => TRUE,
+                    '#default_value' => variable_get('amount_variable_' . $i, ''), //to fix
+                );
+     }
     }
+    dpm($form);
     return $form;
 }
 
@@ -35,7 +76,10 @@ function randomizer_of_content_block_save($delta='', $edit = array()) {
     switch($delta) {
         case 'randomizer' :
             //Save content type selection
-            variable_set('selection_variable', $edit['node']['#options'][$node->type]);
+            for ($i=1; $i <= $n; $i++) {
+            variable_set('selection_variable_' . $i, $edit['node_type_' . $i]);
+            variable_set('amount_variable_' . $i, $edit['entries_count_' . $i]);
+            }
             break;
     }
 }
