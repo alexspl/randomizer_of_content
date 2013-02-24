@@ -9,14 +9,45 @@ function randomizer_of_content_block_info() {
     return $blocks;
 }
 
+function randomizer_of_content_block_configure($delta='') {
+    $form = array();
+    $nodes = node_type_get_types();
+    
+    switch($delta) {
+        case 'randomizer' :
+            //Content type select box:
+            $form['node'] = array(
+                '#type' => 'select',
+                '#title' => t('Select content type'),
+                '#options' => array(),
+                '#default_value' => variable_get('selection_variable', ''),
+            );
+            foreach ($nodes as $node) {
+                $form['node']['#options'][$node->type] = $node->name;
+            }
+            
+            //Number of entries text field:
+    }
+    return $form;
+}
+
+function randomizer_of_content_block_save($delta='', $edit = array()) {
+    switch($delta) {
+        case 'randomizer' :
+            //Save content type selection
+            variable_set('selection_variable', $edit['node']['#options'][$node->type]);
+            break;
+    }
+}
+
 /**
  * Implementation of hook_block_view().
  */
 function randomizer_of_content_block_view($delta='') {
   $block = array();
+  
   switch ($delta) {
     case 'randomizer':
-      $block['subject'] = t('Block Name');
       $block['content'] = randomizer_of_content_contents();
       break;
   }
