@@ -1,16 +1,15 @@
 <?php
 
 function randomizer_of_content_menu() {
-    $items = array();
+  $items = array();
 
-    $items['admin/settings/randomizer_of_content'] = array(
-        'title' => 'Randomizer',
-        'page callback' => 'drupal_get_form',
-        'page arguments' => array('randomizer_of_content_admin'),
-        'access callback' => TRUE,
-        
-    );
-    return $items;
+  $items['admin/settings/randomizer_of_content'] = array(
+    'title' => 'Randomizer',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('randomizer_of_content_admin'),
+    'access callback' => TRUE,
+  );
+  return $items;
 }
 
 function randomizer_of_content_admin() {
@@ -29,110 +28,102 @@ function randomizer_of_content_admin() {
 }
 
 function randomizer_of_content_block_info() {
-    $blocks = array();
-    $blocks['randomizer'] = array(
-        'info' => t('Randomizer'),
-        'cache' => DRUPAL_NO_CACHE,
-    );
-    return $blocks;
+  $blocks = array();
+  $blocks['randomizer'] = array(
+    'info' => t('Randomizer'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
 }
 
-function randomizer_of_content_block_configure($delta='') {
-    $form = array();
-    $nodes = node_type_get_types();
-    
-    switch($delta) {
-        case 'randomizer' :
-            $n = variable_get('forms_count');
-            for ($i = 1; $i <= $n; $i++) {
-            //Content type select box:
-                foreach ($nodes as $node) {
-                    $options[$node->type] = $node->name;
-                 }
-            
-                $form['node_type_' . $i] = array(
-                    '#type' => 'select',
-                    '#title' => t('Select content type'),
-                    '#options' => $options,
-                    '#default_value' => variable_get('node_type_' . $i, ''),
-                    '#required' => TRUE,
-                );
-            
-            
-            //Number of entries text field:
-                $form['entries_count_' . $i] = array(
-                    '#title' => t('Number of content types'),
-                    '#type' => 'textfield',
-                    '#required' => TRUE,
-                    '#default_value' => variable_get('entries_count_' . $i, ''),
-                );
-     }
-    }
-    dpm($form);
-    return $form;
-}
+function randomizer_of_content_block_configure($delta = '') {
+  $form = array();
+  $nodes = node_type_get_types();
 
-function randomizer_of_content_block_save($delta='', $edit = array()) {
-    switch($delta) {
-        case 'randomizer' :
-            $n = variable_get('forms_count');
-            //Save content type selection
-            for ($i=1; $i <= $n; $i++) {
-            variable_set('node_type_' . $i, $edit['node_type_' . $i]);
-            variable_set('entries_count_' . $i, $edit['entries_count_' . $i]);
-            }
-            break;
-    }
-}
-
-/**
- * Implementation of hook_block_view().
- */
-function randomizer_of_content_block_view($delta='') {
-  $block = array();
-  
   switch ($delta) {
-    case 'randomizer':
-      $block['content'] = get_random_nodes_by_specific_content_types();
+    case 'randomizer' :
+      $n = variable_get('forms_count');
+      for ($i = 1; $i <= $n; $i++) {
+        //Content type select box:
+        foreach ($nodes as $node) {
+          $options[$node->type] = $node->name;
+        }
+
+        $form['node_type_' . $i] = array(
+          '#type' => 'select',
+          '#title' => t('Select content type'),
+          '#options' => $options,
+          '#default_value' => variable_get('node_type_' . $i, ''),
+          '#required' => TRUE,
+        );
+
+
+        //Number of entries text field:
+        $form['entries_count_' . $i] = array(
+          '#title' => t('Number of content types'),
+          '#type' => 'textfield',
+          '#required' => TRUE,
+          '#default_value' => variable_get('entries_count_' . $i, ''),
+        );
+      }
+  }
+  dpm($form);
+  return $form;
+}
+
+function randomizer_of_content_block_save($delta = '', $edit = array()) {
+  switch ($delta) {
+    case 'randomizer' :
+      $n = variable_get('forms_count');
+      //Save content type selection
+      for ($i = 1; $i <= $n; $i++) {
+        variable_set('node_type_' . $i, $edit['node_type_' . $i]);
+        variable_set('entries_count_' . $i, $edit['entries_count_' . $i]);
+      }
       break;
   }
-  return $block;
 }
- 
+
 /**
  * custom html block
  * @return string
  */
-function get_random_nodes_by_specific_content_types()
-{
-    $n = variable_get('forms_count');
-    $query = "";
-    $placeholders = array();
-    for ($i = 1; $i <= $n; $i++) {
-        $placeholders[':type' . $i] = variable_get('node_type_' . $i);;
-        $maxlimit = (int)variable_get('entries_count_' . $i);
-        $sub_select = "(SELECT title FROM {node} WHERE type = :type" . $i . " LIMIT " . $maxlimit . ")";
-        if ($i == 1) {
-            $query .= $sub_select;
-        } else {
-            $query .= " UNION " . $sub_select ;
-        }
-    }
-    
-    $result = db_query($query . " ORDER BY RAND()", $placeholders)->fetchAll();
-    return $result;
+function randomizer_of_content_block_view($delta = '') {
+  $block = array();
+
+  switch ($delta) {
+    case 'randomizer':
+      $block['content'] = randomizer_of_content_contents();
+      break;
+  }
+  return $block;
 }
+
 /**
  * custom html block
  * @return string
  */
 function randomizer_of_content_contents() {
-    $output = ' ';
-    $rows = get_random_nodes_by_specific_content_types();
-    foreach ($rows as $row) {
-        // $output .= some data in here from $row
+  $n = variable_get('forms_count');
+
+  $query = "";
+  $placeholders = array();
+  for ($i = 1; $i <= $n; $i++) {
+    $placeholders[':type' . $i] = variable_get('node_type_' . $i);
+    ;
+    $maxlimit = (int) variable_get('entries_count_' . $i);
+    $sub_select = "(SELECT title FROM {node} WHERE type = :type" . $i . " LIMIT " . $maxlimit . ")";
+    if ($i == 1) {
+      $query .= $sub_select;
     }
-    return $output;
-    
-    //return $result;
+    else {
+      $query .= " UNION " . $sub_select;
+    }
+  }
+
+  $result = db_query($query . " ORDER BY RAND()", $placeholders)->fetchAll();
+  dpm($result);
+  return ' ';
+
+  //return $result;
 }
