@@ -48,27 +48,50 @@ function randomizer_of_content_block_configure($delta = '') {
         foreach ($nodes as $node) {
           $options[$node->type] = $node->name;
         }
+        //Beginnig of modification
+        $form['#tree'] = TRUE;
+        $form['content_fieldset'] = array(
+          '#type' => 'fieldset',
+          '#title' => t('Nodes nodes nodes'),
+          // Set up the wrapper so that AJAX will be able to replace the fieldset.
+          '#prefix' => '<div id="names-fieldset-wrapper">',
+          '#suffix' => '</div>',
+  );    //End
 
-        $form['node_type_' . $i] = array(
+        $form['content_fieldset']['node_type_' . $i] = array( //Added fieldset
           '#type' => 'select',
           '#title' => t('Select content type'),
           '#options' => $options,
           '#default_value' => variable_get('node_type_' . $i, ''),
           '#required' => TRUE,
+          '#group' => 'vertical_tabs',
         );
 
 
         //Number of entries text field:
-        $form['entries_count_' . $i] = array(
+        $form['content_fieldset']['entries_count_' . $i] = array( //Added fieldset here too
           '#title' => t('Number of content types'),
           '#type' => 'textfield',
           '#required' => TRUE,
           '#default_value' => variable_get('entries_count_' . $i, ''),
+          '#group' => 'vertical_tabs',
         );
+
+        //Added submit for button
+        $form['content_fieldset']['add_content'] = array(
+          '#type' => 'submit',
+          '#value' => t('Add one more'),
+          '#submit' => array('ajax_example_add_more_add_one'),
+          );
       }
   }
   dpm($form);
   return $form;
+}
+
+function randomizer_of_content_add_more_add_one($form, &$form_state) {
+  $form_state['num_names']++; //Need to add the if statement for this
+  $form_state['rebuild'] = TRUE;
 }
 
 function randomizer_of_content_block_save($delta = '', $edit = array()) {
