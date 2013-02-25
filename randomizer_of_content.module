@@ -54,7 +54,7 @@ function randomizer_of_content_block_configure($delta='') {
                     '#type' => 'select',
                     '#title' => t('Select content type'),
                     '#options' => $options,
-                    '#default_value' => variable_get('selection_variable_' . $i, ''), //to fix
+                    '#default_value' => variable_get('node_type_' . $i, ''),
                     '#required' => TRUE,
                 );
             
@@ -64,7 +64,7 @@ function randomizer_of_content_block_configure($delta='') {
                     '#title' => t('Number of content types'),
                     '#type' => 'textfield',
                     '#required' => TRUE,
-                    '#default_value' => variable_get('amount_variable_' . $i, ''), //to fix
+                    '#default_value' => variable_get('entries_count_' . $i, ''),
                 );
      }
     }
@@ -75,10 +75,11 @@ function randomizer_of_content_block_configure($delta='') {
 function randomizer_of_content_block_save($delta='', $edit = array()) {
     switch($delta) {
         case 'randomizer' :
+            $n = variable_get('forms_count');
             //Save content type selection
             for ($i=1; $i <= $n; $i++) {
-            variable_set('selection_variable_' . $i, $edit['node_type_' . $i]);
-            variable_set('amount_variable_' . $i, $edit['entries_count_' . $i]);
+            variable_set('node_type_' . $i, $edit['node_type_' . $i]);
+            variable_set('entries_count_' . $i, $edit['entries_count_' . $i]);
             }
             break;
     }
@@ -92,7 +93,7 @@ function randomizer_of_content_block_view($delta='') {
   
   switch ($delta) {
     case 'randomizer':
-      $block['content'] = randomizer_of_content_contents();
+      $block['content'] = get_random_nodes_by_specific_content_types();
       break;
   }
   return $block;
@@ -102,10 +103,36 @@ function randomizer_of_content_block_view($delta='') {
  * custom html block
  * @return string
  */
+function get_random_nodes_by_specific_content_types()
+{
+    $n = variable_get('forms_count');
+    $query = "";
+    $placeholders = array();
+    for ($i = 1; $i <= $n; $i++) {
+        $placeholders[':type' . $i] = variable_get('node_type_' . $i);;
+        $maxlimit = (int)variable_get('entries_count_' . $i);
+        $sub_select = "(SELECT title FROM {node} WHERE type = :type" . $i . " LIMIT " . $maxlimit . ")";
+        if ($i == 1) {
+            $query .= $sub_select;
+        } else {
+            $query .= " UNION " . $sub_select ;
+        }
+    }
+    
+    $result = db_query($query . " ORDER BY RAND()", $placeholders)->fetchAll();
+    return $result;
+}
+/**
+ * custom html block
+ * @return string
+ */
 function randomizer_of_content_contents() {
-  return '
-    </p><div class="body">
-      Jora jorel
-    </div><p>
-  ';
+    $output = ' ';
+    $rows = get_random_nodes_by_specific_content_types();
+    foreach ($rows as $row) {
+        // $output .= some data in here from $row
+    }
+    return $output;
+    
+    //return $result;
 }
